@@ -6,58 +6,33 @@ import "./index.css";
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
 import { Contact } from "./pages/Contact.tsx";
 import { PlayVideo } from "./pages/PlayVideo.tsx";
-import { Download } from "./pages/Download.tsx"; // Impor halaman Download
-import Redirect from "./pages/Redirect.tsx"; // Impor komponen Redirect
+import { Download } from "./pages/Download.tsx";
+import Redirect from "./pages/Redirect.tsx";
 
 const router = createBrowserRouter([
   {
-    path: "/", // Rute utama
+    path: "/",
     element: <App />,
     children: [
+      // Menambahkan rute 'index' untuk menangani halaman utama (path: "/")
+      // Ini akan merender PlayVideo tanpa ID, berfungsi sebagai halaman utama/pencarian
       {
-        path: ":id", // Rute dinamis berdasarkan ID
+        index: true,
         element: <PlayVideo />,
       },
-      {
-        path: "e/:id", // Rute baru untuk format `/e/:id`
-        element: <PlayVideo />,
-      },
-      {
-        path: "d/:id", // Rute baru untuk format `/e/:id`
-        element: <PlayVideo />,
-      },
-      {
-        path: "v/:id", // Rute baru untuk format `/e/:id`
-        element: <PlayVideo />,
-      },
-      {
-        path: "play/:id", // Rute baru untuk format `/e/:id`
-        element: <PlayVideo />,
-      },
-      {
-        path: "f/:id", // Rute baru untuk format `/e/:id`
-        element: <PlayVideo />,
-      },
-      {
-        path: "view/:id", // Rute baru untuk format `/e/:id`
-        element: <PlayVideo />,
-      },
-      {
-        path: "share/:id", // Rute baru untuk format `/e/:id`
-        element: <PlayVideo />,
-      },
-      {
-        path: "download", // Rute untuk halaman Download
-        element: <Download />,
-      },
-      {
-        path: "contact", // Rute untuk halaman Contact
-        element: <Contact />,
-      },
-      {
-        path: "s/:id",
-        element: <Redirect />,
-      },
+      // Rute-rute ini tetap sama untuk memutar video berdasarkan ID
+      { path: ":id", element: <PlayVideo /> },
+      { path: "e/:id", element: <PlayVideo /> },
+      { path: "f/:id", element: <PlayVideo /> },
+      { path: "d/:id", element: <PlayVideo /> },
+      { path: "v/:id", element: <PlayVideo /> },
+      { path: "play/:id", element: <PlayVideo /> },
+      { path: "f/:id", element: <PlayVideo /> },
+      { path: "view/:id", element: <PlayVideo /> },
+      { path: "share/:id", element: <PlayVideo /> },
+      { path: "download", element: <Download /> },
+      { path: "contact", element: <Contact /> },
+      { path: "s/:id", element: <Redirect /> },
     ],
   },
 ]);

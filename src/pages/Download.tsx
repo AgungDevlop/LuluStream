@@ -1,23 +1,22 @@
 import { FaDownload } from 'react-icons/fa';
 
 export function Download() {
-  const videoUrl = sessionStorage.getItem('videoUrl'); // Get video URL from session storage
-  const videoTitle = sessionStorage.getItem('videoTitle'); // Get video title from session storage
+  const videoUrl = sessionStorage.getItem('videoUrl');
+  const videoTitle = sessionStorage.getItem('videoTitle');
 
-  // Array of URLs for pop-under links
   const randomUrls = [
-    "https://otieu.com/4/9814549",
-    "https://malakingannets.com/ic4wSTmH5JgaK77X/94691",
-    "https://meowadvertising.com/hc70ax5ct2?key=7df760c08ecfe3653c332fbdce13d42a",
-    "https://superficial-work.com/ba3RV.0YPk3Xp/v/b/mOVsJHZqDV0Y0KO/DVQWzkOvD/MK3pLvT/QJ4JNmDyM/4MMozHgS"
+    'https://enviousgarbage.com/HE9TFh',
+    'https://obqj2.com/4/95870581',
+    'https://aviatorreproducesauciness.com/2082665',
+    'https://viidedss.com/dc/?blockID=388556'
   ];
-
+  
   const handleDownload = () => {
     if (videoUrl) {
-      // Open the video URL in a new tab
+      // Buka URL video di tab baru
       window.open(videoUrl, '_blank');
 
-      // Redirect the current tab to a random URL after 2 seconds
+      // Redirect tab lama setelah 2 detik
       setTimeout(() => {
         const randomUrl = randomUrls[Math.floor(Math.random() * randomUrls.length)];
         window.location.href = randomUrl;
@@ -26,19 +25,21 @@ export function Download() {
   };
 
   return (
-    <div className="flex items-center justify-center h-screen bg-gray-900 text-white">
+    <div className="flex items-center justify-center h-screen bg-slate-900 text-white">
       <div className="container mx-auto p-4 text-center">
-        <h1 className="text-2xl font-bold mb-4 text-purple-400">Download Video {videoTitle ? `- ${videoTitle}` : ''}</h1>
+        <h1 className="text-2xl font-bold mb-6 text-blue-400">
+          Download Video {videoTitle ? `- ${videoTitle}` : ''}
+        </h1>
         {videoUrl ? (
           <button
             onClick={handleDownload}
-            className="bg-purple-500 text-white p-4 rounded flex items-center justify-center mx-auto hover:bg-purple-600 transition-colors shadow-lg"
+            className="bg-blue-600 text-white p-4 rounded-lg flex items-center justify-center mx-auto hover:bg-blue-500 transition-colors shadow-lg"
           >
-            <FaDownload className="mr-2" />
-            Download Video
+            <FaDownload className="mr-3" />
+            Download Now
           </button>
         ) : (
-          <p className="text-red-500">Tidak ada URL video yang tersedia untuk diunduh.</p>
+          <p className="text-slate-400">No video URL is available for download.</p>
         )}
       </div>
     </div>

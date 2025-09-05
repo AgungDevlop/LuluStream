@@ -1,58 +1,57 @@
-import React, { useState } from 'react';
-import { FaPlay, FaDownload, FaUpload } from 'react-icons/fa';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { FaPlayCircle, FaSearch } from 'react-icons/fa';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [showToast, setShowToast] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    setSearchTerm(searchParams.get('search') || '');
+  }, [searchParams]);
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmedSearch = searchTerm.trim();
+    if (trimmedSearch) {
+      navigate(`/?search=${trimmedSearch}`);
+    } else {
+      navigate('/');
+    }
+  };
 
   return (
-    <div className="flex flex-col min-h-screen">
-      {/* Header */}
-      <header className="bg-purple-600 fixed top-0 left-0 w-full p-4 text-white flex items-center justify-between shadow-lg z-50">
-        <div className="flex items-center">
-          <FaPlay className="mr-2" />
-          <h1 className="text-xl font-bold">DoodStream Videy</h1>
+    <div className="flex flex-col min-h-screen bg-slate-900">
+      <header className="bg-slate-800 fixed top-0 left-0 w-full p-4 text-white flex items-center justify-between shadow-lg z-50">
+        <Link to="/" className="flex items-center flex-shrink-0">
+          <FaPlayCircle className="mr-3 text-blue-400" size={24} />
+          <h1 className="text-xl font-bold">Lulu Stream</h1>
+        </Link>
+        <div className="w-full max-w-sm ml-4">
+          <form onSubmit={handleSearch} className="relative">
+            <input
+              type="text"
+              placeholder="Search videos..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full bg-slate-700 text-white rounded-full py-2 pl-4 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <button type="submit" className="absolute right-0 top-0 mt-2 mr-3 text-slate-400 hover:text-white">
+              <FaSearch />
+            </button>
+          </form>
         </div>
-        <a
-          href="https://videhost.my.id"
-          className="bg-gray-800 text-white px-3 py-1 rounded flex items-center space-x-2 hover:bg-gray-700 transition-colors"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <FaUpload />
-          <span>Upload</span>
-        </a>
       </header>
 
-      {/* Main Content */}
-      <main className="flex-1 bg-gray-900 text-white pt-20">
+      <main className="flex-1 text-white pt-20">
         {children}
       </main>
 
-      {/* Toast Notification */}
-      {showToast && (
-        <div className="fixed bottom-20 sm:bottom-4 left-1/2 transform -translate-x-1/2 bg-purple-500 text-white p-3 rounded-lg shadow-lg flex items-center justify-between space-x-4 w-[90%] max-w-3xl z-40">
-          <div className="flex items-center space-x-3">
-            <FaDownload size={24} className="text-white" />
-            <span className="font-semibold">Install DoodStream Videy Apk</span>
-          </div>
-          <Link
-            to="https://github.com/AgungDevlop/Viral/raw/refs/heads/main/DoobStream.apk"
-            className="bg-gray-800 text-white px-3 py-1 rounded font-medium hover:bg-gray-700 transition-colors"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Install
-          </Link>
-          <button onClick={() => setShowToast(false)} className="text-white ml-2 text-xl font-bold">
-            ×
-          </button>
-        </div>
-      )}
+      {/* Notifikasi Toast APK telah dihapus dari sini */}
 
-      {/* Footer */}
-      <footer className="bg-purple-600 p-4 text-white text-center">
-        <p>© 2024 DoodStream Videy. All rights reserved.</p>
+      <footer className="bg-slate-800 p-4 text-white text-center">
+        <p>© 2024 Lulu Stream. All rights reserved.</p>
       </footer>
     </div>
   );

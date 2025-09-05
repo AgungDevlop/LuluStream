@@ -1,56 +1,102 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
-import { FaCopy, FaSearch, FaDownload } from 'react-icons/fa';
+import { useParams, useSearchParams, Link } from 'react-router-dom';
+import { FaCopy, FaDownload, FaPlay, FaPlayCircle, FaSpinner } from 'react-icons/fa';
+import CustomVideoPlayer from '../components/CustomVideoPlayer'; // Pastikan path ini benar
 
-// Tambahkan deklarasi global untuk properti fluidPlayer pada objek window
-declare global {
-  interface Window {
-    fluidPlayer?: (elementId: string, options?: any) => void;
-  }
-}
+// --- Komponen Internal untuk Halaman Ini ---
+
+// Kartu untuk satu video di bagian "Recent Posts"
+const RecentPostCard = ({ video, onClick }: { video: any, onClick: (videoId: string) => void }) => (
+    <div onClick={() => onClick(video.id)} className="group w-64 flex-shrink-0 cursor-pointer">
+      <div className="relative w-full aspect-video rounded-lg overflow-hidden bg-black border border-slate-700 group-hover:border-blue-500 transition-all">
+        <video className="w-full h-full object-cover" preload="metadata" muted>
+          <source src={video.Url} type="video/mp4" />
+        </video>
+        <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+          <FaPlay className="text-white text-4xl" />
+        </div>
+        <div className="absolute top-2 left-2 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded-md">
+          New
+        </div>
+      </div>
+      <div className="mt-2">
+        <h3 className="text-white font-medium text-sm line-clamp-2">{video.Judul}</h3>
+      </div>
+    </div>
+);
+  
+// Section yang menampung "Recent Posts" dengan layout horizontal
+const RecentPostsView = ({ videos, onCardClick }: { videos: any[], onCardClick: (videoId: string) => void }) => (
+    <div className="mb-8">
+      <h2 className="text-2xl font-bold mb-4 text-slate-300">Recent Posts</h2>
+      <div className="flex gap-4 overflow-x-auto pb-4 -mb-4">
+        {videos.map((video) => (
+          <RecentPostCard key={video.id} video={video} onClick={onCardClick} />
+        ))}
+      </div>
+    </div>
+);
+
+// --- Komponen Utama Halaman ---
 
 export function PlayVideo() {
   const { id } = useParams<{ id: string }>();
+  const [searchParams] = useSearchParams();
+  const query = searchParams.get('search') || '';
+
   const [videoUrl, setVideoUrl] = useState<string>('');
+  const [blobUrl, setBlobUrl] = useState<string>(''); 
+  const [isBuffering, setIsBuffering] = useState(false); 
   const [videoTitle, setVideoTitle] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(true);
   const [videos, setVideos] = useState<any[]>([]);
-  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [recentVideos, setRecentVideos] = useState<any[]>([]);
   const [filteredVideos, setFilteredVideos] = useState<any[]>([]);
-  // State untuk pagination
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const videosPerPage = 10;
+  const videosPerPage = 12;
 
-  // Array URL video dasar
-  const videoBaseUrls = ['https://videx.doobs.top/e/'];
-
-  // Array URL untuk pop-under
   const randomUrls = [
-    'https://otieu.com/4/9814549',
-    'https://malakingannets.com/ic4wSTmH5JgaK77X/94691',
-    'https://meowadvertising.com/hc70ax5ct2?key=7df760c08ecfe3653c332fbdce13d42a',
-    'https://superficial-work.com/ba3RV.0YPk3Xp/v/b/mOVsJHZqDV0Y0KO/DVQWzkOvD/MK3pLvT/QJ4JNmDyM/4MMozHgS'
+    'https://enviousgarbage.com/HE9TFh',
+    'https://obqj2.com/4/95870581',
+    'https://aviatorreproducesauciness.com/2082665',
+    'https://viidedss.com/dc/?blockID=388556'
   ];
 
   useEffect(() => {
     const fetchVideoData = async () => {
       setLoading(true);
+      setBlobUrl(''); // Reset blob URL saat video berubah
       try {
-        const response = await fetch(
-          'https://raw.githubusercontent.com/AgungDevlop/Viral/refs/heads/main/Video.json'
-        );
+        const response = await fetch('https://raw.githubusercontent.com/AgungDevlop/Viral/refs/heads/main/Video.json');
         const data = await response.json();
-        const shuffledData = shuffleArray(data);
-        const video = shuffledData.find((item: { id: string }) => item.id === id);
-        if (video) {
-          document.title = video.Judul;
-          setVideoUrl(video.Url);
-          setVideoTitle(video.Judul);
-          sessionStorage.setItem('videoUrl', video.Url);
-          sessionStorage.setItem('videoTitle', video.Judul);
+        
+        setRecentVideos(data.slice(-10).reverse());
+
+        if (id) {
+            const video = data.find((item: { id: string }) => item.id === id);
+            if (video) {
+              document.title = video.Judul;
+              setVideoUrl(video.Url); 
+              setVideoTitle(video.Judul);
+              sessionStorage.setItem('videoUrl', video.Url);
+              sessionStorage.setItem('videoTitle', video.Judul);
+
+              setIsBuffering(true);
+              try {
+                // Ambil video sebagai Blob untuk proteksi
+                const videoResponse = await fetch(video.Url);
+                const videoBlob = await videoResponse.blob();
+                const url = URL.createObjectURL(videoBlob);
+                setBlobUrl(url);
+              } catch (e) {
+                console.error("Gagal mengambil video sebagai blob (masalah CORS?):", e);
+                setBlobUrl(video.Url); // Fallback ke URL langsung jika gagal
+              } finally {
+                setIsBuffering(false);
+              }
+            }
         }
-        setVideos(shuffledData);
-        setFilteredVideos(shuffledData);
+        setVideos(shuffleArray(data));
       } catch (error) {
         console.error('Error fetching video data:', error);
       } finally {
@@ -59,53 +105,50 @@ export function PlayVideo() {
     };
 
     fetchVideoData();
-  }, [id]);
 
+    // Fungsi cleanup untuk Blob URL agar tidak terjadi memory leak
+    return () => {
+        if (blobUrl) {
+            URL.revokeObjectURL(blobUrl);
+        }
+    };
+  }, [id]);
+  
   const shuffleArray = (array: any[]) => {
     for (let i = array.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [array[i], array[j]] = [array[j], array[i]];
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
     }
     return array;
   };
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(`https://${window.location.hostname}/${id}`);
-    alert('Link video telah disalin ke clipboard!');
-  };
-
-  const getRandomUrlWithId = (videoId: string) => {
-    const baseUrl = videoBaseUrls[Math.floor(Math.random() * videoBaseUrls.length)];
-    return `${baseUrl}${videoId}`;
-  };
-
-  const getRandomPopUnderUrl = () => {
-    return randomUrls[Math.floor(Math.random() * randomUrls.length)];
-  };
-
   const handleCardClick = (videoId: string) => {
-    const randomVideoUrl = getRandomUrlWithId(videoId);
-    window.open(randomVideoUrl, '_blank');
+    window.open(`/play/${videoId}`, '_blank');
     setTimeout(() => {
-      window.location.href = getRandomPopUnderUrl();
-    }, 2000);
+      const randomUrl = randomUrls[Math.floor(Math.random() * randomUrls.length)];
+      window.location.href = randomUrl;
+    }, 500);
+  };
+
+  const handleCopy = () => {
+    if(id) {
+        navigator.clipboard.writeText(`https://${window.location.hostname}/play/${id}`);
+        alert('Video link copied to clipboard!');
+    }
   };
 
   const handleDownloadClick = () => {
-    sessionStorage.setItem('videoUrl', videoUrl);
+    sessionStorage.setItem('videoUrl', videoUrl); 
     window.open('/download', '_blank');
-    setTimeout(() => {
-      window.location.href = getRandomPopUnderUrl();
-    }, 2000);
   };
 
   useEffect(() => {
-    const filtered = videos.filter(video =>
-      video.Judul.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-    setFilteredVideos(filtered);
+    const results = query 
+      ? videos.filter(video => video.Judul.toLowerCase().includes(query.toLowerCase()))
+      : videos;
+    setFilteredVideos(results);
     setCurrentPage(1);
-  }, [searchTerm, videos]);
+  }, [query, videos]);
 
   const indexOfLastVideo = currentPage * videosPerPage;
   const indexOfFirstVideo = indexOfLastVideo - videosPerPage;
@@ -118,102 +161,102 @@ export function PlayVideo() {
     }
   };
 
-  useEffect(() => {
-    if (!loading && videoUrl && window.fluidPlayer) {
-      window.fluidPlayer('video-id', {
-        layoutControls: {
-          controlBar: { autoHideTimeout: 3, animated: true, autoHide: true },
-          htmlOnPauseBlock: { html: null, height: null, width: null },
-          autoPlay: false,
-          mute: true,
-          allowTheatre: true,
-          playPauseAnimation: true,
-          playbackRateEnabled: true,
-          allowDownload: false,
-          playButtonShowing: true,
-          fillToContainer: false,
-          posterImage: ''
-        },
-        vastOptions: {
-          adList: [
-            { roll: 'preRoll', vastTag: 'https://knowledgeable-tree.com/dEmAFqzid.GBN/vtZUGDUS/heIma9iuJZFUtljk/PPT/Y/wBNtjPcbyHMPzcEItUNOjgA/2NNTzUIGzlM_itZTssaBWV1zp/daDX0Hxm', adText: '' },
-            { roll: 'midRoll', vastTag: 'https://knowledgeable-tree.com/dEmAFqzid.GBN/vtZUGDUS/heIma9iuJZFUtljk/PPT/Y/wBNtjPcbyHMPzcEItUNOjgA/2NNTzUIGzlM_itZTssaBWV1zp/daDX0Hxm', adText: '' },
-            { roll: 'postRoll', vastTag: 'https://knowledgeable-tree.com/dEmAFqzid.GBN/vtZUGDUS/heIma9iuJZFUtljk/PPT/Y/wBNtjPcbyHMPzcEItUNOjgA/2NNTzUIGzlM_itZTssaBWV1zp/daDX0Hxm', adText: '' },
-            { roll: 'onPauseRoll', vastTag: 'https://knowledgeable-tree.com/dEmAFqzid.GBN/vtZUGDUS/heIma9iuJZFUtljk/PPT/Y/wBNtjPcbyHMPzcEItUNOjgA/2NNTzUIGzlM_itZTssaBWV1zp/daDX0Hxm', adText: '' }
-          ],
-          adCTAText: false,
-          adCTATextPosition: ''
-        }
-      });
-    }
-  }, [loading, videoUrl]);
-
   if (loading) {
-    return <div className="text-center p-10">Loading...</div>;
+    return <div className="text-center p-10 text-white">Loading...</div>;
   }
+  
+  // Tampilan untuk halaman utama (root /)
+  if (!id && !query) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[60vh] text-slate-400 text-center p-4">
+        <FaPlayCircle size={64} className="mb-4 text-slate-500" />
+        <h1 className="text-2xl font-bold text-slate-300">Welcome to Lulu Stream</h1>
+        <p className="mt-2 max-w-md">
+          Use the search bar above to find the video you're looking for.
+        </p>
+      </div>
+    );
+  }
+  
+  // Komponen pemutar video yang hanya muncul jika ada ID
+  const PlayerView = () => (
+    <div className="bg-slate-800 p-4 rounded-lg shadow-lg mb-8">
+      <h1 className="text-2xl font-bold mb-4 text-center break-words text-blue-400">{videoTitle}</h1>
+      <div className="w-full aspect-video rounded-lg overflow-hidden shadow-lg border border-slate-700 flex items-center justify-center bg-black">
+        {isBuffering && (
+            <div className='text-center text-white'>
+                <FaSpinner className="animate-spin text-4xl text-blue-400 mx-auto" />
+                <p className='mt-2'>Preparing secure video...</p>
+            </div>
+        )}
+        {!isBuffering && blobUrl && (
+            <CustomVideoPlayer 
+                key={id} 
+                src={blobUrl} 
+                title={videoTitle}
+                randomUrls={randomUrls}
+            />
+        )}
+      </div>
+      <div className="flex mt-4 mb-4 border border-slate-700 rounded-lg overflow-hidden">
+        <input type="text" value={`https://${window.location.hostname}/play/${id}`} readOnly className="flex-1 p-3 bg-slate-900 text-white outline-none" />
+        <button onClick={handleCopy} className="bg-blue-700 hover:bg-blue-600 transition-colors text-white p-3">
+          <FaCopy />
+        </button>
+      </div>
+      <button onClick={handleDownloadClick} className="w-full bg-indigo-600 hover:bg-indigo-500 transition-colors text-white py-3 rounded-lg flex items-center justify-center font-semibold shadow-md">
+        <FaDownload className="mr-2" />
+        Download
+      </button>
+    </div>
+  );
+
+  const pageTitle = query ? `Search Results for "${query}"` : "More Videos";
 
   return (
-    <div className="container mx-auto max-w-3xl p-4 sm:p-6 bg-gray-900 text-white">
-      <div className="bg-gray-800 p-4 rounded-lg shadow-lg">
-        <h1 className="text-2xl font-bold mb-4 text-center break-words text-purple-400">{videoTitle}</h1>
+    <div className="container mx-auto max-w-6xl p-4 sm:p-6 text-white">
+      {id && <PlayerView />}
+      
+      {id && recentVideos.length > 0 && <RecentPostsView videos={recentVideos} onCardClick={handleCardClick} />}
 
-        <div className="mb-4 w-full aspect-video rounded-lg overflow-hidden shadow-lg border border-gray-700 flex items-center justify-center bg-black">
-          <video id="video-id" className="w-full h-full object-contain" preload="metadata">
-            <source src={videoUrl} type="video/mp4" />
-            Browser Anda tidak mendukung tag video.
-          </video>
-        </div>
+      <div>
+        <h2 className="text-2xl font-bold mb-4 text-slate-300">{pageTitle}</h2>
+        
+        {currentVideos.length > 0 ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            {currentVideos.map((video) => (
+                <div onClick={() => handleCardClick(video.id)} key={video.id} className="group transition-all cursor-pointer">
+                    <div className="relative w-full aspect-video rounded-lg overflow-hidden bg-black border border-slate-700 group-hover:border-blue-500">
+                      <video className="w-full h-full object-cover" preload="metadata" muted>
+                          <source src={video.Url} type="video/mp4" />
+                      </video>
+                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                          <FaPlay className="text-white text-4xl" />
+                      </div>
+                    </div>
+                    <div className="mt-2">
+                      <h3 className="text-white font-medium text-sm sm:text-base line-clamp-2">{video.Judul}</h3>
+                    </div>
+                </div>
+            ))}
+          </div>
+        ) : (
+          <p className='text-slate-400'>No videos found.</p>
+        )}
 
-        <div className="flex mb-4 border border-gray-700 rounded-lg overflow-hidden">
-          <input type="text" value={`https://${window.location.hostname}/${id}`} readOnly className="flex-1 p-3 bg-gray-900 text-white outline-none" />
-          <button onClick={handleCopy} className="bg-purple-500 hover:bg-purple-600 transition-colors text-white p-3">
-            <FaCopy />
-          </button>
-        </div>
-
-        <button onClick={handleDownloadClick} className="w-full bg-green-500 hover:bg-green-600 transition-colors text-white py-3 rounded-lg flex items-center justify-center font-semibold mb-4 shadow-md">
-          <FaDownload className="mr-2" />
-          Download
-        </button>
-
-        <div className="flex mb-4 border border-gray-700 rounded-lg overflow-hidden">
-          <input type="text" placeholder="Cari video..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="flex-1 p-3 bg-gray-900 text-white outline-none" />
-          <button onClick={() => handlePageChange(1)} className="bg-purple-500 hover:bg-purple-600 transition-colors text-white p-3">
-            <FaSearch />
-          </button>
-        </div>
-
-        {/* Daftar Video dalam bentuk List */}
-        <div className="flex flex-col gap-4">
-          {currentVideos.map((video) => (
-            <div
-              key={video.id}
-              onClick={() => handleCardClick(video.id)}
-              className="border border-gray-700 p-3 rounded-lg bg-gray-800 hover:bg-gray-700 transition-all shadow-md cursor-pointer flex items-center gap-4"
-            >
-              <div className="w-32 h-20 sm:w-40 sm:h-24 rounded-md overflow-hidden flex-shrink-0 bg-black">
-                <video className="w-full h-full object-cover" preload="metadata" muted>
-                  <source src={video.Url} type="video/mp4" />
-                </video>
-              </div>
-              <div className="flex-1 overflow-hidden">
-                <h2 className="text-white font-medium text-sm sm:text-base truncate">{video.Judul}</h2>
-              </div>
+        {totalPages > 1 && (
+            <div className="flex items-center justify-between mt-8">
+              <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1} className="bg-slate-700 hover:bg-slate-600 transition-colors text-white py-2 px-4 rounded disabled:opacity-50 disabled:cursor-not-allowed">
+                Previous
+              </button>
+              <span className="text-slate-400">
+                Page {currentPage} of {totalPages}
+              </span>
+              <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages} className="bg-slate-700 hover:bg-slate-600 transition-colors text-white py-2 px-4 rounded disabled:opacity-50 disabled:cursor-not-allowed">
+                Next
+              </button>
             </div>
-          ))}
-        </div>
-
-        <div className="flex items-center justify-between mt-6">
-          <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1} className="bg-gray-700 hover:bg-gray-600 transition-colors text-white py-2 px-4 rounded disabled:opacity-50">
-            Sebelumnya
-          </button>
-          <span className="text-gray-400">
-            Halaman {currentPage} dari {totalPages}
-          </span>
-          <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages} className="bg-gray-700 hover:bg-gray-600 transition-colors text-white py-2 px-4 rounded disabled:opacity-50">
-            Berikutnya
-          </button>
-        </div>
+        )}
       </div>
     </div>
   );
