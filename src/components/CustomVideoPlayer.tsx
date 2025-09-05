@@ -23,9 +23,8 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({ src, title, rando
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isControlsVisible, setIsControlsVisible] = useState(true);
   const [isSharePanelOpen, setIsSharePanelOpen] = useState(false);
-  let controlsTimeout: NodeJS.Timeout;
-
-  // --- LOGIKA UTAMA UNTUK DIRECT LINK ---
+  // PERBAIKAN: Menggunakan tipe yang benar untuk browser
+  let controlsTimeout: ReturnType<typeof setTimeout>;
 
   const triggerDirectLink = () => {
     const COOLDOWN_SECONDS = 15;
@@ -51,8 +50,6 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({ src, title, rando
     }
   };
 
-  // --- FUNGSI KONTROL PEMUTAR ---
-
   const formatTime = (time: number) => {
     const minutes = Math.floor(time / 60);
     const seconds = Math.floor(time % 60);
@@ -61,15 +58,11 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({ src, title, rando
   
   const togglePlayPause = () => {
     if (videoRef.current) {
-      if (videoRef.current.paused) {
-        videoRef.current.play();
-      } else {
-        videoRef.current.pause();
-      }
+      if (videoRef.current.paused) videoRef.current.play();
+      else videoRef.current.pause();
     }
   };
 
-  // <-- PERUBAHAN: Handler terpusat untuk semua aksi Play/Pause + Direct Link
   const handleMainInteraction = () => {
     togglePlayPause();
     triggerDirectLink();
@@ -107,11 +100,8 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({ src, title, rando
   };
 
   const toggleFullscreen = () => {
-    if (!document.fullscreenElement) {
-        containerRef.current?.requestFullscreen();
-    } else {
-        document.exitFullscreen();
-    }
+    if (!document.fullscreenElement) containerRef.current?.requestFullscreen();
+    else document.exitFullscreen();
   };
 
   const handleMouseMove = () => {
@@ -131,7 +121,7 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({ src, title, rando
   return (
     <div 
         ref={containerRef} 
-        className="relative w-full aspect-video bg-black cursor-pointer" // <-- Menambahkan cursor-pointer di sini
+        className="relative w-full aspect-video bg-black cursor-pointer"
         onMouseMove={handleMouseMove}
         onMouseLeave={() => {
             clearTimeout(controlsTimeout);
@@ -142,7 +132,7 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({ src, title, rando
         ref={videoRef}
         src={src}
         className="w-full h-full"
-        onClick={handleMainInteraction} // <-- PERUBAHAN: Pemicu direct link ditambahkan kembali ke video utama
+        onClick={handleMainInteraction}
         onTimeUpdate={handleTimeUpdate}
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}
@@ -150,13 +140,10 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({ src, title, rando
         controlsList="nodownload"
       />
       
-      {/* ========================================================== */}
-      {/* PERUBAHAN BARU: Tombol Play/Pause di tengah video */}
-      {/* ========================================================== */}
       {!isPlaying && (
           <div
             className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 bg-black/50 p-4 rounded-full transition-transform hover:scale-110"
-            onClick={handleMainInteraction} // Menggunakan handler yang sama
+            onClick={handleMainInteraction}
           >
             <FaPlay size={40} className="text-white ml-1" />
           </div>
