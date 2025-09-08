@@ -26,30 +26,6 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({ src, title, rando
   // PERBAIKAN: Menggunakan tipe yang benar untuk browser
   let controlsTimeout: ReturnType<typeof setTimeout>;
 
-  const triggerDirectLink = () => {
-    const COOLDOWN_SECONDS = 15;
-    const cooldownMilliseconds = COOLDOWN_SECONDS * 1000;
-    
-    const lastAdClickTimestamp = sessionStorage.getItem('lastAdClickTimestamp');
-
-    const openRandomDirectLink = () => {
-      if (randomUrls && randomUrls.length > 0) {
-        const randomUrl = randomUrls[Math.floor(Math.random() * randomUrls.length)];
-        window.open(randomUrl, '_blank');
-        sessionStorage.setItem('lastAdClickTimestamp', Date.now().toString());
-      }
-    };
-
-    if (!lastAdClickTimestamp) {
-      openRandomDirectLink();
-    } else {
-      const timeSinceLastClick = Date.now() - parseInt(lastAdClickTimestamp, 10);
-      if (timeSinceLastClick > cooldownMilliseconds) {
-        openRandomDirectLink();
-      }
-    }
-  };
-
   const formatTime = (time: number) => {
     const minutes = Math.floor(time / 60);
     const seconds = Math.floor(time % 60);
@@ -63,17 +39,17 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({ src, title, rando
     }
   };
 
+  // FUNGSI IKLAN DIHAPUS DARI SINI
   const handleMainInteraction = () => {
     togglePlayPause();
-    triggerDirectLink();
   };
   
+  // FUNGSI IKLAN DIHAPUS DARI SINI
   const handleProgressInteraction = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (videoRef.current) {
       const newTime = (Number(e.target.value) / 100) * duration;
       videoRef.current.currentTime = newTime;
     }
-    triggerDirectLink();
   };
 
   const handleTimeUpdate = () => {
