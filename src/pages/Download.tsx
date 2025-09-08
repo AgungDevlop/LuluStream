@@ -13,10 +13,8 @@ export function Download() {
   
   const handleDownload = () => {
     if (videoUrl) {
-      // Buka URL video di tab baru
       window.open(videoUrl, '_blank');
 
-      // Redirect tab lama setelah 2 detik
       setTimeout(() => {
         const randomUrl = randomUrls[Math.floor(Math.random() * randomUrls.length)];
         window.location.href = randomUrl;
@@ -27,13 +25,13 @@ export function Download() {
   return (
     <div className="flex items-center justify-center h-screen bg-gray-900 text-white">
       <div className="container mx-auto p-4 text-center">
-        <h1 className="text-2xl font-bold mb-6 text-green-400">
+        <h1 className="text-2xl font-bold mb-6 text-blue-400">
           Download Video {videoTitle ? `- ${videoTitle}` : ''}
         </h1>
         {videoUrl ? (
           <button
             onClick={handleDownload}
-            className="bg-green-600 text-white p-4 rounded-lg flex items-center justify-center mx-auto hover:bg-green-500 transition-colors shadow-lg"
+            className="bg-blue-600 text-white p-4 rounded-lg flex items-center justify-center mx-auto hover:bg-blue-500 transition-colors shadow-lg"
           >
             <FaDownload className="mr-3" />
             Download Now

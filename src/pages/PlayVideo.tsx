@@ -10,7 +10,7 @@ declare global {
 
 const RecentPostCard = ({ video, onClick }: { video: any, onClick: (videoId: string) => void }) => (
     <div onClick={() => onClick(video.id)} className="group w-64 flex-shrink-0 cursor-pointer">
-      <div className="relative w-full aspect-video rounded-lg overflow-hidden bg-black border border-gray-700 group-hover:border-green-500 transition-all">
+      <div className="relative w-full aspect-video rounded-lg overflow-hidden bg-black border border-gray-700 group-hover:border-blue-500 transition-all">
         <video className="w-full h-full object-cover" preload="metadata" muted>
           <source src={video.Url} type="video/mp4" />
         </video>
@@ -124,27 +124,27 @@ export function PlayVideo() {
       if (typeof window.fluidPlayer === 'function') {
         playerInstance.current = window.fluidPlayer('video-player', {
           "layoutControls": {
-		"controlBar": {
-			"autoHideTimeout": 3,
-			"animated": true,
-			"autoHide": true
-		},
-		"htmlOnPauseBlock": {
-			"html": null,
-			"height": null,
-			"width": null
-		},
-		"autoPlay": false,
-		"mute": true,
-		"allowTheatre": true,
-		"playPauseAnimation": false,
-		"playbackRateEnabled": false,
-		"allowDownload": false,
-		"playButtonShowing": true,
-		"fillToContainer": false,
-		"primaryColor": "#230fff",
-		"posterImage": ""
-	}
+            "controlBar": {
+              "autoHideTimeout": 3,
+              "animated": true,
+              "autoHide": true
+            },
+            "htmlOnPauseBlock": {
+              "html": null,
+              "height": null,
+              "width": null
+            },
+            "autoPlay": false,
+            "mute": true,
+            "allowTheatre": true,
+            "playPauseAnimation": false,
+            "playbackRateEnabled": false,
+            "allowDownload": false,
+            "playButtonShowing": true,
+            "fillToContainer": false,
+            "primaryColor": "#3b82f6",
+            "posterImage": ""
+          }
         });
       }
     };
@@ -225,7 +225,7 @@ export function PlayVideo() {
     return (
       <div className="flex flex-col items-center justify-center h-[60vh] text-gray-400 text-center p-4">
         <FaPlayCircle size={64} className="mb-4 text-gray-500" />
-        <h1 className="text-2xl font-bold text-gray-300">Welcome to Vidify Stream</h1>
+        <h1 className="text-2xl font-bold text-gray-300">Welcome to Lulu Stream</h1>
         <p className="mt-2 max-w-md">
           Use the search bar above to find the video you're looking for.
         </p>
@@ -235,11 +235,11 @@ export function PlayVideo() {
   
   const PlayerView = () => (
     <div className="bg-gray-800 p-4 rounded-lg shadow-lg mb-8">
-      <h1 className="text-2xl font-bold mb-4 text-center break-words text-green-400">{videoTitle}</h1>
+      <h1 className="text-2xl font-bold mb-4 text-center break-words text-blue-400">{videoTitle}</h1>
       <div className="w-full aspect-video rounded-lg overflow-hidden shadow-lg border border-gray-700 flex items-center justify-center bg-black">
         {isBuffering && (
             <div className='text-center text-white'>
-                <FaSpinner className="animate-spin text-4xl text-green-400 mx-auto" />
+                <FaSpinner className="animate-spin text-4xl text-blue-400 mx-auto" />
                 <p className='mt-2'>Preparing secure video...</p>
             </div>
         )}
@@ -249,11 +249,11 @@ export function PlayVideo() {
       </div>
       <div className="flex mt-4 mb-4 border border-gray-700 rounded-lg overflow-hidden">
         <input type="text" value={`https://${window.location.hostname}/play/${id}`} readOnly className="flex-1 p-3 bg-gray-900 text-white outline-none" />
-        <button onClick={handleCopy} className="bg-green-600 hover:bg-green-700 transition-colors text-white p-3">
+        <button onClick={handleCopy} className="bg-blue-600 hover:bg-blue-700 transition-colors text-white p-3">
           <FaCopy />
         </button>
       </div>
-      <button onClick={handleDownloadClick} className="w-full bg-green-700 hover:bg-green-600 transition-colors text-white py-3 rounded-lg flex items-center justify-center font-semibold shadow-md">
+      <button onClick={handleDownloadClick} className="w-full bg-blue-700 hover:bg-blue-600 transition-colors text-white py-3 rounded-lg flex items-center justify-center font-semibold shadow-md">
         <FaDownload className="mr-2" />
         Download
       </button>
@@ -275,7 +275,7 @@ export function PlayVideo() {
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
             {currentVideos.map((video) => (
                 <div onClick={() => handleCardClick(video.id)} key={video.id} className="group transition-all cursor-pointer">
-                    <div className="relative w-full aspect-video rounded-lg overflow-hidden bg-black border border-gray-700 group-hover:border-green-500">
+                    <div className="relative w-full aspect-video rounded-lg overflow-hidden bg-black border border-gray-700 group-hover:border-blue-500">
                       <video className="w-full h-full object-cover" preload="metadata" muted>
                           <source src={video.Url} type="video/mp4" />
                       </video>
