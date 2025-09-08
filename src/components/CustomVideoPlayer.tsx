@@ -7,10 +7,9 @@ import {
 interface CustomVideoPlayerProps {
   src: string;
   title: string;
-  randomUrls: string[];
 }
 
-const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({ src, title, randomUrls }) => {
+const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({ src, title }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -23,7 +22,6 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({ src, title, rando
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isControlsVisible, setIsControlsVisible] = useState(true);
   const [isSharePanelOpen, setIsSharePanelOpen] = useState(false);
-  // PERBAIKAN: Menggunakan tipe yang benar untuk browser
   let controlsTimeout: ReturnType<typeof setTimeout>;
 
   const formatTime = (time: number) => {
@@ -39,12 +37,10 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({ src, title, rando
     }
   };
 
-  // FUNGSI IKLAN DIHAPUS DARI SINI
   const handleMainInteraction = () => {
     togglePlayPause();
   };
   
-  // FUNGSI IKLAN DIHAPUS DARI SINI
   const handleProgressInteraction = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (videoRef.current) {
       const newTime = (Number(e.target.value) / 100) * duration;
@@ -125,18 +121,18 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({ src, title, rando
           </div>
       )}
 
-      <div className="absolute top-3 right-3 bg-blue-600 text-white text-sm font-bold px-2 py-1 rounded-md pointer-events-none">
-        LuluStream
+      <div className="absolute top-3 right-3 bg-green-600 text-white text-sm font-bold px-2 py-1 rounded-md pointer-events-none">
+        Vidify Stream
       </div>
       
       {isSharePanelOpen && (
-        <div className="absolute bottom-16 right-4 bg-slate-800 p-3 rounded-lg shadow-lg z-20 flex items-center gap-3">
-            <button onClick={() => handleShare('facebook')} className="p-2 rounded-full hover:bg-slate-700 transition-colors"><FaFacebook size={22} className="text-blue-600" /></button>
-            <button onClick={() => handleShare('twitter')} className="p-2 rounded-full hover:bg-slate-700 transition-colors"><FaTwitter size={22} className="text-sky-500" /></button>
-            <button onClick={() => handleShare('whatsapp')} className="p-2 rounded-full hover:bg-slate-700 transition-colors"><FaWhatsapp size={22} className="text-green-500" /></button>
-            <button onClick={() => handleShare('telegram')} className="p-2 rounded-full hover:bg-slate-700 transition-colors"><FaTelegram size={22} className="text-sky-400" /></button>
-            <div className="w-px h-6 bg-slate-600"></div>
-            <button onClick={handleCopyLink} className="p-2 rounded-full hover:bg-slate-700 transition-colors"><FaCopy size={20} className="text-slate-300" /></button>
+        <div className="absolute bottom-16 right-4 bg-gray-800 p-3 rounded-lg shadow-lg z-20 flex items-center gap-3">
+            <button onClick={() => handleShare('facebook')} className="p-2 rounded-full hover:bg-gray-700 transition-colors"><FaFacebook size={22} className="text-blue-600" /></button>
+            <button onClick={() => handleShare('twitter')} className="p-2 rounded-full hover:bg-gray-700 transition-colors"><FaTwitter size={22} className="text-sky-500" /></button>
+            <button onClick={() => handleShare('whatsapp')} className="p-2 rounded-full hover:bg-gray-700 transition-colors"><FaWhatsapp size={22} className="text-green-500" /></button>
+            <button onClick={() => handleShare('telegram')} className="p-2 rounded-full hover:bg-gray-700 transition-colors"><FaTelegram size={22} className="text-sky-400" /></button>
+            <div className="w-px h-6 bg-gray-600"></div>
+            <button onClick={handleCopyLink} className="p-2 rounded-full hover:bg-gray-700 transition-colors"><FaCopy size={20} className="text-gray-300" /></button>
         </div>
       )}
 
@@ -161,7 +157,7 @@ const CustomVideoPlayer: React.FC<CustomVideoPlayerProps> = ({ src, title, rando
           </div>
           <div className="flex items-center gap-4">
             <span>{formatTime(currentTime)} / {formatTime(duration)}</span>
-            <button onClick={() => setIsSharePanelOpen(!isSharePanelOpen)} className={`transition-colors ${isSharePanelOpen ? 'text-blue-400' : 'hover:text-blue-400'}`}><FaShareAlt size={20} /></button>
+            <button onClick={() => setIsSharePanelOpen(!isSharePanelOpen)} className={`transition-colors ${isSharePanelOpen ? 'text-green-400' : 'hover:text-green-400'}`}><FaShareAlt size={20} /></button>
             <button onClick={toggleFullscreen}>{isFullscreen ? <FaCompress size={20} /> : <FaExpand size={20} />}</button>
           </div>
         </div>

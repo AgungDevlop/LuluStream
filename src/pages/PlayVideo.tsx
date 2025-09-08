@@ -1,15 +1,13 @@
 import { useEffect, useState } from 'react';
-// PERBAIKAN: 'Link' dihapus dari import karena tidak digunakan
 import { useParams, useSearchParams } from 'react-router-dom';
 import { FaCopy, FaDownload, FaPlay, FaPlayCircle, FaSpinner } from 'react-icons/fa';
 import CustomVideoPlayer from '../components/CustomVideoPlayer'; // Pastikan path ini benar
 
 // --- Komponen Internal untuk Halaman Ini ---
 
-// Kartu untuk satu video di bagian "Recent Posts"
 const RecentPostCard = ({ video, onClick }: { video: any, onClick: (videoId: string) => void }) => (
     <div onClick={() => onClick(video.id)} className="group w-64 flex-shrink-0 cursor-pointer">
-      <div className="relative w-full aspect-video rounded-lg overflow-hidden bg-black border border-slate-700 group-hover:border-blue-500 transition-all">
+      <div className="relative w-full aspect-video rounded-lg overflow-hidden bg-black border border-gray-700 group-hover:border-green-500 transition-all">
         <video className="w-full h-full object-cover" preload="metadata" muted>
           <source src={video.Url} type="video/mp4" />
         </video>
@@ -26,10 +24,9 @@ const RecentPostCard = ({ video, onClick }: { video: any, onClick: (videoId: str
     </div>
 );
   
-// Section yang menampung "Recent Posts" dengan layout horizontal
 const RecentPostsView = ({ videos, onCardClick }: { videos: any[], onCardClick: (videoId: string) => void }) => (
     <div className="mb-8">
-      <h2 className="text-2xl font-bold mb-4 text-slate-300">Recent Posts</h2>
+      <h2 className="text-2xl font-bold mb-4 text-gray-300">Recent Posts</h2>
       <div className="flex gap-4 overflow-x-auto pb-4 -mb-4">
         {videos.map((video) => (
           <RecentPostCard key={video.id} video={video} onClick={onCardClick} />
@@ -66,7 +63,7 @@ export function PlayVideo() {
   useEffect(() => {
     const fetchVideoData = async () => {
       setLoading(true);
-      setBlobUrl(''); // Reset blob URL saat video berubah
+      setBlobUrl('');
       try {
         const response = await fetch('https://raw.githubusercontent.com/AgungDevlop/Viral/refs/heads/main/Video.json');
         const data = await response.json();
@@ -84,14 +81,13 @@ export function PlayVideo() {
 
               setIsBuffering(true);
               try {
-                // Ambil video sebagai Blob untuk proteksi
                 const videoResponse = await fetch(video.Url);
                 const videoBlob = await videoResponse.blob();
                 const url = URL.createObjectURL(videoBlob);
                 setBlobUrl(url);
               } catch (e) {
                 console.error("Gagal mengambil video sebagai blob (masalah CORS?):", e);
-                setBlobUrl(video.Url); // Fallback ke URL langsung jika gagal
+                setBlobUrl(video.Url);
               } finally {
                 setIsBuffering(false);
               }
@@ -107,7 +103,6 @@ export function PlayVideo() {
 
     fetchVideoData();
 
-    // Fungsi cleanup untuk Blob URL agar tidak terjadi memory leak
     return () => {
         if (blobUrl) {
             URL.revokeObjectURL(blobUrl);
@@ -138,9 +133,20 @@ export function PlayVideo() {
     }
   };
 
+  // PERUBAHAN DI SINI
   const handleDownloadClick = () => {
+    // Simpan info video untuk halaman download
     sessionStorage.setItem('videoUrl', videoUrl); 
+    sessionStorage.setItem('videoTitle', videoTitle);
+
+    // Buka halaman download di tab baru
     window.open('/download', '_blank');
+
+    // Alihkan tab saat ini ke URL acak setelah jeda singkat
+    setTimeout(() => {
+      const randomUrl = randomUrls[Math.floor(Math.random() * randomUrls.length)];
+      window.location.href = randomUrl;
+    }, 500);
   };
 
   useEffect(() => {
@@ -166,12 +172,11 @@ export function PlayVideo() {
     return <div className="text-center p-10 text-white">Loading...</div>;
   }
   
-  // Tampilan untuk halaman utama (root /)
   if (!id && !query) {
     return (
-      <div className="flex flex-col items-center justify-center h-[60vh] text-slate-400 text-center p-4">
-        <FaPlayCircle size={64} className="mb-4 text-slate-500" />
-        <h1 className="text-2xl font-bold text-slate-300">Welcome to Lulu Stream</h1>
+      <div className="flex flex-col items-center justify-center h-[60vh] text-gray-400 text-center p-4">
+        <FaPlayCircle size={64} className="mb-4 text-gray-500" />
+        <h1 className="text-2xl font-bold text-gray-300">Welcome to Vidify Stream</h1>
         <p className="mt-2 max-w-md">
           Use the search bar above to find the video you're looking for.
         </p>
@@ -179,14 +184,13 @@ export function PlayVideo() {
     );
   }
   
-  // Komponen pemutar video yang hanya muncul jika ada ID
   const PlayerView = () => (
-    <div className="bg-slate-800 p-4 rounded-lg shadow-lg mb-8">
-      <h1 className="text-2xl font-bold mb-4 text-center break-words text-blue-400">{videoTitle}</h1>
-      <div className="w-full aspect-video rounded-lg overflow-hidden shadow-lg border border-slate-700 flex items-center justify-center bg-black">
+    <div className="bg-gray-800 p-4 rounded-lg shadow-lg mb-8">
+      <h1 className="text-2xl font-bold mb-4 text-center break-words text-green-400">{videoTitle}</h1>
+      <div className="w-full aspect-video rounded-lg overflow-hidden shadow-lg border border-gray-700 flex items-center justify-center bg-black">
         {isBuffering && (
             <div className='text-center text-white'>
-                <FaSpinner className="animate-spin text-4xl text-blue-400 mx-auto" />
+                <FaSpinner className="animate-spin text-4xl text-green-400 mx-auto" />
                 <p className='mt-2'>Preparing secure video...</p>
             </div>
         )}
@@ -195,17 +199,16 @@ export function PlayVideo() {
                 key={id} 
                 src={blobUrl} 
                 title={videoTitle}
-                randomUrls={randomUrls}
             />
         )}
       </div>
-      <div className="flex mt-4 mb-4 border border-slate-700 rounded-lg overflow-hidden">
-        <input type="text" value={`https://${window.location.hostname}/play/${id}`} readOnly className="flex-1 p-3 bg-slate-900 text-white outline-none" />
-        <button onClick={handleCopy} className="bg-blue-700 hover:bg-blue-600 transition-colors text-white p-3">
+      <div className="flex mt-4 mb-4 border border-gray-700 rounded-lg overflow-hidden">
+        <input type="text" value={`https://${window.location.hostname}/play/${id}`} readOnly className="flex-1 p-3 bg-gray-900 text-white outline-none" />
+        <button onClick={handleCopy} className="bg-green-600 hover:bg-green-700 transition-colors text-white p-3">
           <FaCopy />
         </button>
       </div>
-      <button onClick={handleDownloadClick} className="w-full bg-indigo-600 hover:bg-indigo-500 transition-colors text-white py-3 rounded-lg flex items-center justify-center font-semibold shadow-md">
+      <button onClick={handleDownloadClick} className="w-full bg-green-700 hover:bg-green-600 transition-colors text-white py-3 rounded-lg flex items-center justify-center font-semibold shadow-md">
         <FaDownload className="mr-2" />
         Download
       </button>
@@ -221,13 +224,13 @@ export function PlayVideo() {
       {id && recentVideos.length > 0 && <RecentPostsView videos={recentVideos} onCardClick={handleCardClick} />}
 
       <div>
-        <h2 className="text-2xl font-bold mb-4 text-slate-300">{pageTitle}</h2>
+        <h2 className="text-2xl font-bold mb-4 text-gray-300">{pageTitle}</h2>
         
         {currentVideos.length > 0 ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
             {currentVideos.map((video) => (
                 <div onClick={() => handleCardClick(video.id)} key={video.id} className="group transition-all cursor-pointer">
-                    <div className="relative w-full aspect-video rounded-lg overflow-hidden bg-black border border-slate-700 group-hover:border-blue-500">
+                    <div className="relative w-full aspect-video rounded-lg overflow-hidden bg-black border border-gray-700 group-hover:border-green-500">
                       <video className="w-full h-full object-cover" preload="metadata" muted>
                           <source src={video.Url} type="video/mp4" />
                       </video>
@@ -242,18 +245,18 @@ export function PlayVideo() {
             ))}
           </div>
         ) : (
-          <p className='text-slate-400'>No videos found.</p>
+          <p className='text-gray-400'>No videos found.</p>
         )}
 
         {totalPages > 1 && (
             <div className="flex items-center justify-between mt-8">
-              <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1} className="bg-slate-700 hover:bg-slate-600 transition-colors text-white py-2 px-4 rounded disabled:opacity-50 disabled:cursor-not-allowed">
+              <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1} className="bg-gray-700 hover:bg-gray-600 transition-colors text-white py-2 px-4 rounded disabled:opacity-50 disabled:cursor-not-allowed">
                 Previous
               </button>
-              <span className="text-slate-400">
+              <span className="text-gray-400">
                 Page {currentPage} of {totalPages}
               </span>
-              <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages} className="bg-slate-700 hover:bg-slate-600 transition-colors text-white py-2 px-4 rounded disabled:opacity-50 disabled:cursor-not-allowed">
+              <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages} className="bg-gray-700 hover:bg-gray-600 transition-colors text-white py-2 px-4 rounded disabled:opacity-50 disabled:cursor-not-allowed">
                 Next
               </button>
             </div>
