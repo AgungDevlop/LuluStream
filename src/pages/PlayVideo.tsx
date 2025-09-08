@@ -1,9 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { FaCopy, FaDownload, FaPlay, FaPlayCircle, FaSpinner } from 'react-icons/fa';
-import CustomVideoPlayer from '../components/CustomVideoPlayer'; // Pastikan path ini benar
 
-// --- Komponen Internal untuk Halaman Ini ---
+declare global {
+  interface Window {
+    fluidPlayer?: (elementId: string, options?: any) => any;
+  }
+}
 
 const RecentPostCard = ({ video, onClick }: { video: any, onClick: (videoId: string) => void }) => (
     <div onClick={() => onClick(video.id)} className="group w-64 flex-shrink-0 cursor-pointer">
@@ -35,8 +38,6 @@ const RecentPostsView = ({ videos, onCardClick }: { videos: any[], onCardClick: 
     </div>
 );
 
-// --- Komponen Utama Halaman ---
-
 export function PlayVideo() {
   const { id } = useParams<{ id: string }>();
   const [searchParams] = useSearchParams();
@@ -52,6 +53,8 @@ export function PlayVideo() {
   const [filteredVideos, setFilteredVideos] = useState<any[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const videosPerPage = 12;
+
+  const playerInstance = useRef<any>(null);
 
   const randomUrls = [
     'https://enviousgarbage.com/HE9TFh',
@@ -86,7 +89,6 @@ export function PlayVideo() {
                 const url = URL.createObjectURL(videoBlob);
                 setBlobUrl(url);
               } catch (e) {
-                console.error("Gagal mengambil video sebagai blob (masalah CORS?):", e);
                 setBlobUrl(video.Url);
               } finally {
                 setIsBuffering(false);
@@ -104,12 +106,65 @@ export function PlayVideo() {
     fetchVideoData();
 
     return () => {
-        if (blobUrl) {
+        if (blobUrl && blobUrl.startsWith('blob:')) {
             URL.revokeObjectURL(blobUrl);
         }
     };
   }, [id]);
   
+  useEffect(() => {
+    if (!blobUrl) {
+      return;
+    }
+
+    const initPlayer = () => {
+      if (playerInstance.current) {
+        playerInstance.current.destroy();
+      }
+      if (typeof window.fluidPlayer === 'function') {
+        playerInstance.current = window.fluidPlayer('video-player', {
+          "layoutControls": {
+		"controlBar": {
+			"autoHideTimeout": 3,
+			"animated": true,
+			"autoHide": true
+		},
+		"htmlOnPauseBlock": {
+			"html": null,
+			"height": null,
+			"width": null
+		},
+		"autoPlay": false,
+		"mute": true,
+		"allowTheatre": true,
+		"playPauseAnimation": false,
+		"playbackRateEnabled": false,
+		"allowDownload": false,
+		"playButtonShowing": true,
+		"fillToContainer": false,
+		"primaryColor": "#230fff",
+		"posterImage": ""
+	}
+        });
+      }
+    };
+    
+    const checkInterval = setInterval(() => {
+        if (typeof window.fluidPlayer === 'function') {
+            clearInterval(checkInterval);
+            initPlayer();
+        }
+    }, 100);
+
+    return () => {
+      clearInterval(checkInterval);
+      if (playerInstance.current) {
+        playerInstance.current.destroy();
+        playerInstance.current = null;
+      }
+    };
+  }, [blobUrl, videoTitle]);
+
   const shuffleArray = (array: any[]) => {
     for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -133,16 +188,10 @@ export function PlayVideo() {
     }
   };
 
-  // PERUBAHAN DI SINI
   const handleDownloadClick = () => {
-    // Simpan info video untuk halaman download
     sessionStorage.setItem('videoUrl', videoUrl); 
     sessionStorage.setItem('videoTitle', videoTitle);
-
-    // Buka halaman download di tab baru
     window.open('/download', '_blank');
-
-    // Alihkan tab saat ini ke URL acak setelah jeda singkat
     setTimeout(() => {
       const randomUrl = randomUrls[Math.floor(Math.random() * randomUrls.length)];
       window.location.href = randomUrl;
@@ -168,7 +217,7 @@ export function PlayVideo() {
     }
   };
 
-  if (loading) {
+  if (loading && !blobUrl) {
     return <div className="text-center p-10 text-white">Loading...</div>;
   }
   
@@ -194,13 +243,9 @@ export function PlayVideo() {
                 <p className='mt-2'>Preparing secure video...</p>
             </div>
         )}
-        {!isBuffering && blobUrl && (
-            <CustomVideoPlayer 
-                key={id} 
-                src={blobUrl} 
-                title={videoTitle}
-            />
-        )}
+        <video id="video-player" style={{width: '100%', height: '100%'}} key={blobUrl}>
+            <source src={blobUrl} type="video/mp4" />
+        </video>
       </div>
       <div className="flex mt-4 mb-4 border border-gray-700 rounded-lg overflow-hidden">
         <input type="text" value={`https://${window.location.hostname}/play/${id}`} readOnly className="flex-1 p-3 bg-gray-900 text-white outline-none" />

@@ -14,13 +14,10 @@ const router = createBrowserRouter([
     path: "/",
     element: <App />,
     children: [
-      // Menambahkan rute 'index' untuk menangani halaman utama (path: "/")
-      // Ini akan merender PlayVideo tanpa ID, berfungsi sebagai halaman utama/pencarian
       {
         index: true,
         element: <PlayVideo />,
       },
-      // Rute-rute ini tetap sama untuk memutar video berdasarkan ID
       { path: ":id", element: <PlayVideo /> },
       { path: "e/:id", element: <PlayVideo /> },
       { path: "f/:id", element: <PlayVideo /> },
