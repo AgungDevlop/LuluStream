@@ -1,3 +1,5 @@
+// src/main.tsx
+
 import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App.tsx";
@@ -8,6 +10,7 @@ import { Contact } from "./pages/Contact.tsx";
 import { PlayVideo } from "./pages/PlayVideo.tsx";
 import { Download } from "./pages/Download.tsx";
 import Redirect from "./pages/Redirect.tsx";
+import { Home } from "./pages/Home.tsx"; // Impor komponen Home yang baru
 
 const router = createBrowserRouter([
   {
@@ -16,15 +19,19 @@ const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <PlayVideo />,
+        element: <Home />,
       },
+      { 
+        path: "search",
+        element: <PlayVideo /> 
+      },
+      // Rute-rute ini tetap untuk memutar video berdasarkan ID
       { path: ":id", element: <PlayVideo /> },
       { path: "e/:id", element: <PlayVideo /> },
       { path: "f/:id", element: <PlayVideo /> },
       { path: "d/:id", element: <PlayVideo /> },
       { path: "v/:id", element: <PlayVideo /> },
       { path: "play/:id", element: <PlayVideo /> },
-      { path: "f/:id", element: <PlayVideo /> },
       { path: "view/:id", element: <PlayVideo /> },
       { path: "share/:id", element: <PlayVideo /> },
       { path: "download", element: <Download /> },

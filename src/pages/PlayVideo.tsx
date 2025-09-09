@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
-import { useParams, useSearchParams } from 'react-router-dom';
-import { FaCopy, FaDownload, FaPlay, FaPlayCircle, FaSpinner } from 'react-icons/fa';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
+import { FaCopy, FaDownload, FaPlay, FaExclamationTriangle, FaSpinner } from 'react-icons/fa';
+import { useLayout } from '../context/LayoutContext'; // Import hook
 
 declare global {
   interface Window {
@@ -42,12 +43,14 @@ export function PlayVideo() {
   const { id } = useParams<{ id: string }>();
   const [searchParams] = useSearchParams();
   const query = searchParams.get('search') || '';
+  const { setShowSearch } = useLayout(); // Gunakan konteks untuk mengatur visibilitas form
 
   const [videoUrl, setVideoUrl] = useState<string>('');
   const [blobUrl, setBlobUrl] = useState<string>(''); 
   const [isBuffering, setIsBuffering] = useState(false); 
   const [videoTitle, setVideoTitle] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(true);
+  const [videoFound, setVideoFound] = useState<boolean>(true);
   const [videos, setVideos] = useState<any[]>([]);
   const [recentVideos, setRecentVideos] = useState<any[]>([]);
   const [filteredVideos, setFilteredVideos] = useState<any[]>([]);
@@ -67,6 +70,9 @@ export function PlayVideo() {
     const fetchVideoData = async () => {
       setLoading(true);
       setBlobUrl('');
+      setVideoFound(true);
+      setShowSearch(false); // Sembunyikan form saat data mulai diambil
+
       try {
         const response = await fetch('https://raw.githubusercontent.com/AgungDevlop/Viral/refs/heads/main/Video.json');
         const data = await response.json();
@@ -76,6 +82,7 @@ export function PlayVideo() {
         if (id) {
             const video = data.find((item: { id: string }) => item.id === id);
             if (video) {
+              setShowSearch(true); // Tampilkan form karena video valid ditemukan
               document.title = video.Judul;
               setVideoUrl(video.Url); 
               setVideoTitle(video.Judul);
@@ -93,6 +100,8 @@ export function PlayVideo() {
               } finally {
                 setIsBuffering(false);
               }
+            } else {
+              setVideoFound(false);
             }
         }
         setVideos(shuffleArray(data));
@@ -102,16 +111,25 @@ export function PlayVideo() {
         setLoading(false);
       }
     };
-
-    fetchVideoData();
+    
+    // Hanya jalankan fetch jika ada ID atau query
+    if (id || query) {
+        fetchVideoData();
+    } else {
+        setLoading(false);
+    }
 
     return () => {
         if (blobUrl && blobUrl.startsWith('blob:')) {
             URL.revokeObjectURL(blobUrl);
         }
+        setShowSearch(false); // Sembunyikan form saat komponen dibongkar (pindah halaman)
     };
-  }, [id]);
+  }, [id, query, setShowSearch]);
   
+  // Sisa kode di PlayVideo.tsx tetap sama...
+  // ... (copy paste sisa kode dari file PlayVideo.tsx sebelumnya)
+  // --- Start of unchanged code ---
   useEffect(() => {
     if (!blobUrl) {
       return;
@@ -201,10 +219,11 @@ export function PlayVideo() {
   useEffect(() => {
     const results = query 
       ? videos.filter(video => video.Judul.toLowerCase().includes(query.toLowerCase()))
-      : videos;
+      // Jika tidak ada query, jangan tampilkan video acak di halaman play
+      : id ? videos : [];
     setFilteredVideos(results);
     setCurrentPage(1);
-  }, [query, videos]);
+  }, [query, videos, id]);
 
   const indexOfLastVideo = currentPage * videosPerPage;
   const indexOfFirstVideo = indexOfLastVideo - videosPerPage;
@@ -217,18 +236,21 @@ export function PlayVideo() {
     }
   };
 
-  if (loading && !blobUrl) {
+  if (loading) {
     return <div className="text-center p-10 text-white">Loading...</div>;
   }
   
-  if (!id && !query) {
+  if (id && !videoFound) {
     return (
       <div className="flex flex-col items-center justify-center h-[60vh] text-gray-400 text-center p-4">
-        <FaPlayCircle size={64} className="mb-4 text-gray-500" />
-        <h1 className="text-2xl font-bold text-gray-300">Welcome to Lulu Stream</h1>
+        <FaExclamationTriangle size={64} className="mb-4 text-red-500" />
+        <h1 className="text-2xl font-bold text-gray-300">Video Not Found</h1>
         <p className="mt-2 max-w-md">
-          Use the search bar above to find the video you're looking for.
+          Sorry, the video you are looking for does not exist or may have been removed.
         </p>
+        <Link to="/" className="mt-6 inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+            Go to Homepage
+        </Link>
       </div>
     );
   }
@@ -264,49 +286,54 @@ export function PlayVideo() {
 
   return (
     <div className="container mx-auto max-w-6xl p-4 sm:p-6 text-white">
-      {id && <PlayerView />}
+      {id && videoFound && <PlayerView />}
       
-      {id && recentVideos.length > 0 && <RecentPostsView videos={recentVideos} onCardClick={handleCardClick} />}
+      {id && videoFound && recentVideos.length > 0 && <RecentPostsView videos={recentVideos} onCardClick={handleCardClick} />}
 
-      <div>
-        <h2 className="text-2xl font-bold mb-4 text-gray-300">{pageTitle}</h2>
-        
-        {currentVideos.length > 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            {currentVideos.map((video) => (
-                <div onClick={() => handleCardClick(video.id)} key={video.id} className="group transition-all cursor-pointer">
-                    <div className="relative w-full aspect-video rounded-lg overflow-hidden bg-black border border-gray-700 group-hover:border-blue-500">
-                      <video className="w-full h-full object-cover" preload="metadata" muted>
-                          <source src={video.Url} type="video/mp4" />
-                      </video>
-                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                          <FaPlay className="text-white text-4xl" />
+      { (query || id) && (
+        <div>
+          <h2 className="text-2xl font-bold mb-4 text-gray-300">{pageTitle}</h2>
+          
+          {currentVideos.length > 0 ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+              {currentVideos.map((video) => (
+                  <div onClick={() => handleCardClick(video.id)} key={video.id} className="group transition-all cursor-pointer">
+                      <div className="relative w-full aspect-video rounded-lg overflow-hidden bg-black border border-gray-700 group-hover:border-blue-500">
+                        <video className="w-full h-full object-cover" preload="metadata" muted>
+                            <source src={video.Url} type="video/mp4" />
+                        </video>
+                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            <FaPlay className="text-white text-4xl" />
+                        </div>
                       </div>
-                    </div>
-                    <div className="mt-2">
-                      <h3 className="text-white font-medium text-sm sm:text-base line-clamp-2">{video.Judul}</h3>
-                    </div>
-                </div>
-            ))}
-          </div>
-        ) : (
-          <p className='text-gray-400'>No videos found.</p>
-        )}
-
-        {totalPages > 1 && (
-            <div className="flex items-center justify-between mt-8">
-              <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1} className="bg-gray-700 hover:bg-gray-600 transition-colors text-white py-2 px-4 rounded disabled:opacity-50 disabled:cursor-not-allowed">
-                Previous
-              </button>
-              <span className="text-gray-400">
-                Page {currentPage} of {totalPages}
-              </span>
-              <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages} className="bg-gray-700 hover:bg-gray-600 transition-colors text-white py-2 px-4 rounded disabled:opacity-50 disabled:cursor-not-allowed">
-                Next
-              </button>
+                      <div className="mt-2">
+                        <h3 className="text-white font-medium text-sm sm:text-base line-clamp-2">{video.Judul}</h3>
+                      </div>
+                  </div>
+              ))}
             </div>
-        )}
-      </div>
+          ) : (
+            <p className='text-gray-400'>
+              {query ? 'No videos found for your search.' : ''}
+            </p>
+          )}
+
+          {totalPages > 1 && (
+              <div className="flex items-center justify-between mt-8">
+                <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1} className="bg-gray-700 hover:bg-gray-600 transition-colors text-white py-2 px-4 rounded disabled:opacity-50 disabled:cursor-not-allowed">
+                  Previous
+                </button>
+                <span className="text-gray-400">
+                  Page {currentPage} of {totalPages}
+                </span>
+                <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages} className="bg-gray-700 hover:bg-gray-600 transition-colors text-white py-2 px-4 rounded disabled:opacity-50 disabled:cursor-not-allowed">
+                  Next
+                </button>
+              </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
+// --- End of unchanged code ---
