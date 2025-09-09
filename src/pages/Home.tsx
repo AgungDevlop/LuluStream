@@ -1,7 +1,6 @@
 // src/pages/Home.tsx
 
 import { FaFilm, FaSearch, FaCloudDownloadAlt } from 'react-icons/fa';
-import { Link } from 'react-router-dom';
 
 export function Home() {
   return (
