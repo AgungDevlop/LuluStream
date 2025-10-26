@@ -60,10 +60,10 @@ export function PlayVideo() {
   const playerInstance = useRef<any>(null);
 
   const randomUrls = [
+    'https://adclickad.com/get/?spot_id=6089412&cat=25&subid=2067093145',
     'https://enviousgarbage.com/HE9TFh',
-    'https://obqj2.com/4/95870581',
-    'https://aviatorreproducesauciness.com/2082665',
-    'https://viidedss.com/dc/?blockID=388556'
+    'https://otieu.com/4/10055984',
+    'https://viikqoye.com/dc/?blockID=388556' 
   ];
 
   useEffect(() => {
